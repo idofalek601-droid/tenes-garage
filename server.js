@@ -339,6 +339,9 @@ app.delete('/api/schedule/:id', requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
+// ── ping לבדיקה שהקוד החדש רץ ────────────────────────────────────────────────
+app.get('/api/ping', (req, res) => res.json({ ok: true, v: 'new' }));
+
 // ── בדיקת מייל ישירה ────────────────────────────────────────────────────────
 app.get('/api/test-email', async (req, res) => {
   const nodemailer = require('nodemailer');
