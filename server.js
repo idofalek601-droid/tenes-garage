@@ -339,6 +339,27 @@ app.delete('/api/schedule/:id', requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
+// ── בדיקת מייל ישירה ────────────────────────────────────────────────────────
+app.get('/api/test-email', requireAuth, async (req, res) => {
+  const nodemailer = require('nodemailer');
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com', port: 465, secure: true,
+    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
+  });
+  try {
+    await transporter.verify();
+    await transporter.sendMail({
+      from: process.env.GMAIL_USER,
+      to: process.env.GMAIL_USER,
+      subject: '✅ בדיקת מייל – הגראז של טנא',
+      text: 'המייל עובד! 🎉',
+    });
+    res.json({ ok: true, message: 'מייל נשלח בהצלחה!' });
+  } catch (err) {
+    res.json({ ok: false, error: err.message });
+  }
+});
+
 // ── Serve admin page (מוגן!) ───────────────────────────────────────────────
 app.get('/admin', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'admin.html'));
