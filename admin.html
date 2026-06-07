@@ -346,6 +346,7 @@
         <button class="filter-btn" data-filter="pending">ממתין</button>
         <button class="filter-btn" data-filter="confirmed">מאושר</button>
         <button class="filter-btn" data-filter="cancelled">בוטל</button>
+        <button class="filter-btn" onclick="clearAllAppts()" style="background:#dc3545;color:#fff;border-radius:8px;padding:.4rem 1rem;">🗑 מחק הכל</button>
       </div>
     </div>
     <div id="tableContainer"></div>
@@ -565,6 +566,12 @@ async function sendSms(id) {
   showToast('שולח SMS...');
   const r = await fetch(`/api/appointments/${id}/sms`,{method:'POST'}).then(r=>r.json());
   showToast(r.ok ? '💬 SMS נשלח!' : '❗ ' + r.reason);
+}
+async function clearAllAppts() {
+  if (!confirm('למחוק את כל התורים?')) return;
+  await fetch('/api/appointments/all', { method: 'DELETE' });
+  await loadAppointments();
+  showToast('🗑 כל התורים נמחקו');
 }
 async function deleteAppt(id) {
   if (!confirm('למחוק?')) return;
