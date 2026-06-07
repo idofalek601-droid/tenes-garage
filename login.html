@@ -1,0 +1,172 @@
+﻿<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>כניסה – הגראז׳ של טנא</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --brown-dark:  #3b1f0e;
+      --brown-mid:   #a0622a;
+      --brown-light: #c98a4b;
+      --cream:       #fdf6ee;
+      --cream-dark:  #f3e8d8;
+    }
+    body {
+      font-family: 'Heebo', sans-serif;
+      background: linear-gradient(160deg, var(--brown-dark) 0%, var(--brown-mid) 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      direction: rtl;
+    }
+
+    .login-card {
+      background: var(--cream);
+      border-radius: 20px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.4);
+      text-align: center;
+    }
+
+    .login-logo {
+      font-size: 3rem;
+      margin-bottom: .5rem;
+    }
+
+    .login-card h1 {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--brown-dark);
+      margin-bottom: .3rem;
+    }
+
+    .login-card p {
+      color: #888;
+      font-size: .85rem;
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.1rem;
+      text-align: right;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 700;
+      color: var(--brown-dark);
+      font-size: .85rem;
+      margin-bottom: .4rem;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: .8rem 1rem;
+      border: 2px solid var(--cream-dark);
+      border-radius: 10px;
+      font-family: 'Heebo', sans-serif;
+      font-size: 1rem;
+      background: white;
+      direction: rtl;
+      transition: border-color .2s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--brown-light);
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: .85rem;
+      background: var(--brown-dark);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Heebo', sans-serif;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: .5rem;
+      transition: background .2s, transform .2s;
+    }
+
+    .btn-login:hover {
+      background: var(--brown-mid);
+      transform: translateY(-2px);
+    }
+
+    .error-msg {
+      background: #f8d7da;
+      color: #721c24;
+      border-radius: 8px;
+      padding: .7rem 1rem;
+      font-size: .88rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .back-link {
+      display: block;
+      margin-top: 1.2rem;
+      color: var(--brown-mid);
+      font-size: .83rem;
+      text-decoration: none;
+    }
+    .back-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-logo">✂</div>
+    <h1>פאנל ניהול</h1>
+    <p>הגראז׳ של טנא – כניסה למנהל</p>
+
+    <div class="error-msg" id="errorMsg">❗ שם משתמש או סיסמה שגויים</div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label>שם משתמש</label>
+        <input type="text" id="username" placeholder="admin" autocomplete="username" required/>
+      </div>
+      <div class="form-group">
+        <label>סיסמה</label>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required/>
+      </div>
+      <button type="submit" class="btn-login">כניסה →</button>
+    </form>
+
+    <a href="/" class="back-link">← חזור לאתר</a>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (res.ok) {
+        window.location.href = '/admin';
+      } else {
+        document.getElementById('errorMsg').style.display = 'block';
+        document.getElementById('password').value = '';
+        document.getElementById('password').focus();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,920 @@
+﻿<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>פאנל ניהול – הגראז׳ של טנא</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    body { background: var(--cream); }
+
+    /* ── Header ── */
+    .admin-header {
+      background: var(--brown-dark); color: var(--white);
+      padding: 1.1rem 2rem; display: flex; align-items: center;
+      justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    }
+    .admin-header h1 { font-size: 1.25rem; font-weight: 900; }
+    .admin-header a  { color: var(--brown-light); font-size: .88rem; }
+
+    .admin-wrap { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex; gap: 0; margin-bottom: 2rem;
+      border-bottom: 3px solid var(--cream-dark);
+    }
+    .tab-btn {
+      padding: .7rem 1.6rem; border: none; background: none;
+      font-family: 'Heebo', sans-serif; font-size: .95rem; font-weight: 700;
+      color: var(--text-mid); cursor: pointer; border-bottom: 3px solid transparent;
+      margin-bottom: -3px; transition: color .2s, border-color .2s;
+    }
+    .tab-btn.active { color: var(--brown-dark); border-bottom-color: var(--brown-mid); }
+    .tab-btn:hover  { color: var(--brown-mid); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Integration Cards ── */
+    .integrations {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+      gap: 1.2rem; margin-bottom: 2rem;
+    }
+    .int-card {
+      background: var(--white); border-radius: var(--radius); padding: 1.3rem 1.5rem;
+      box-shadow: 0 4px 20px var(--shadow); display: flex; align-items: center;
+      gap: 1rem; border-right: 5px solid #ccc; transition: box-shadow .2s;
+    }
+    .int-card.ok   { border-color: #28a745; }
+    .int-card.warn { border-color: #ffc107; }
+    .int-icon { font-size: 2rem; flex-shrink: 0; }
+    .int-body h3 { font-size: .95rem; font-weight: 800; color: var(--brown-dark); margin-bottom: .2rem; }
+    .int-body p  { font-size: .8rem; color: var(--text-mid); margin: 0; }
+    .int-status { margin-right: auto; font-size: .73rem; font-weight: 700; padding: .2rem .7rem; border-radius: 50px; }
+    .int-status.ok   { background: #d4edda; color: #155724; }
+    .int-status.warn { background: #fff3cd; color: #856404; }
+    .btn-connect {
+      display: inline-block; margin-top: .45rem; background: var(--brown-mid); color: var(--white);
+      border: none; border-radius: 8px; padding: .3rem .85rem; font-size: .76rem;
+      font-weight: 700; cursor: pointer; font-family: 'Heebo',sans-serif; text-decoration: none;
+      transition: background .2s;
+    }
+    .btn-connect:hover { background: var(--brown-dark); }
+
+    /* ── Toolbar (appointments tab) ── */
+    .admin-toolbar {
+      display: flex; align-items: center; gap: .8rem;
+      margin-bottom: 1.2rem; flex-wrap: wrap;
+    }
+    .admin-toolbar h2 { font-size: 1.3rem; color: var(--brown-dark); flex: 1; font-weight: 900; }
+    .filter-group { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .filter-btn {
+      padding: .38rem .95rem; border-radius: 50px; border: 2px solid var(--brown-light);
+      background: var(--white); color: var(--brown-dark); font-family: 'Heebo',sans-serif;
+      font-weight: 700; cursor: pointer; font-size: .8rem; transition: all .2s;
+    }
+    .filter-btn.active, .filter-btn:hover { background: var(--brown-mid); color: var(--white); border-color: var(--brown-mid); }
+
+    .count-badge { background: var(--brown-light); color: var(--white); border-radius: 50px; padding: .1rem .6rem; font-size: .75rem; font-weight: 700; margin-right: .35rem; }
+
+    /* ── Table ── */
+    .admin-table { width: 100%; border-collapse: collapse; background: var(--white); border-radius: var(--radius); overflow: hidden; box-shadow: 0 4px 24px var(--shadow); }
+    .admin-table th { background: var(--brown-dark); color: var(--white); padding: .8rem 1rem; font-size: .82rem; font-weight: 700; text-align: right; white-space: nowrap; }
+    .admin-table td { padding: .75rem 1rem; border-bottom: 1px solid var(--cream-dark); color: var(--text-mid); font-size: .85rem; vertical-align: middle; }
+    .admin-table tr:last-child td { border-bottom: none; }
+    .admin-table tr:hover td { background: var(--cream); }
+
+    .status-badge { display: inline-block; padding: .18rem .7rem; border-radius: 50px; font-size: .73rem; font-weight: 700; }
+    .status-pending   { background: #fff3cd; color: #856404; }
+    .status-confirmed { background: #d4edda; color: #155724; }
+    .status-cancelled { background: #f8d7da; color: #721c24; }
+
+    .sms-tag,.cal-tag { font-size: .68rem; padding: .1rem .48rem; border-radius: 4px; font-weight: 600; display:inline-block; }
+    .sms-ok   { background: #d4edda; color: #155724; }
+    .sms-fail { background: #f8d7da; color: #721c24; }
+    .sms-none, .cal-none { background: #e9ecef; color: #6c757d; }
+    .cal-ok   { background: #cce5ff; color: #004085; }
+
+    .admin-actions { display: flex; gap: .35rem; flex-wrap: wrap; }
+    .btn-sm { padding: .26rem .68rem; border-radius: 6px; font-size: .73rem; font-weight: 700; border: none; cursor: pointer; font-family: 'Heebo',sans-serif; transition: opacity .2s; white-space: nowrap; }
+    .btn-sm:hover { opacity: .8; }
+    .btn-confirm { background: #28a745; color: #fff; }
+    .btn-cancel  { background: #dc3545; color: #fff; }
+    .btn-sms     { background: #17a2b8; color: #fff; }
+    .btn-delete  { background: #6c757d; color: #fff; }
+
+    .empty-state { text-align: center; padding: 3.5rem; color: var(--text-mid); font-size: .95rem; }
+
+    /* ══════════════════════════════════════════
+       SCHEDULE / AVAILABILITY TAB
+    ══════════════════════════════════════════ */
+    .avail-grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    /* mini calendar picker */
+    .avail-cal-box {
+      background: var(--white); border-radius: var(--radius);
+      padding: 1.4rem; box-shadow: 0 4px 20px var(--shadow);
+    }
+    .avail-cal-box h3 { font-size: 1rem; font-weight: 800; color: var(--brown-dark); margin-bottom: 1rem; }
+
+    .mini-cal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: .8rem;
+    }
+    .mini-cal-header span { font-weight: 800; color: var(--brown-dark); font-size: .95rem; }
+    .mini-cal-header button {
+      background: var(--cream-dark); border: none; border-radius: 7px;
+      width: 30px; height: 30px; font-size: 1.1rem; cursor: pointer;
+      color: var(--brown-dark); display: flex; align-items: center; justify-content: center;
+    }
+    .mini-cal-header button:hover { background: var(--brown-light); color: #fff; }
+
+    .mini-cal-days { display: grid; grid-template-columns: repeat(7,1fr); text-align: center; font-size: .72rem; font-weight: 700; color: var(--brown-mid); margin-bottom: .3rem; }
+    .mini-cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
+
+    .mcell {
+      aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+      border-radius: 7px; font-size: .82rem; cursor: pointer; font-weight: 600;
+      transition: background .15s, color .15s; border: 2px solid transparent;
+      position: relative;
+    }
+    .mcell.empty   { cursor: default; }
+    .mcell.past    { color: #ccc; cursor: not-allowed; }
+    .mcell.normal  { color: var(--text-dark); }
+    .mcell.normal:hover { background: var(--cream-dark); }
+    .mcell.exc-closed  { background: #f8d7da; color: #721c24 !important; cursor:pointer; }
+    .mcell.exc-custom  { background: #fff3cd; color: #856404 !important; cursor:pointer; }
+    .mcell.selected    { background: var(--brown-dark); color: #fff !important; border-color: var(--brown-light); }
+    .mcell.today-cell  { border-color: var(--brown-light); }
+
+    /* dot */
+    .mcell.exc-closed::after, .mcell.exc-custom::after {
+      content: ''; display: block; width: 5px; height: 5px; border-radius: 50%;
+      position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+    }
+    .mcell.exc-closed::after { background: #dc3545; }
+    .mcell.exc-custom::after { background: #856404; }
+
+    .cal-legend { display: flex; gap: .8rem; margin-top: .8rem; flex-wrap: wrap; font-size: .75rem; color: var(--text-mid); }
+    .leg { display: flex; align-items: center; gap: .3rem; }
+    .leg-dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+
+    /* exception form */
+    .exc-form-box {
+      background: var(--white); border-radius: var(--radius);
+      padding: 1.6rem; box-shadow: 0 4px 20px var(--shadow);
+    }
+    .exc-form-box h3 { font-size: 1rem; font-weight: 800; color: var(--brown-dark); margin-bottom: 1.2rem; }
+
+    .exc-date-display {
+      background: var(--cream-dark); border-radius: 10px; padding: .7rem 1rem;
+      font-weight: 700; color: var(--brown-dark); margin-bottom: 1.2rem; font-size: .9rem;
+      text-align: center; min-height: 2.6rem;
+    }
+
+    .type-toggle { display: flex; gap: .6rem; margin-bottom: 1.2rem; }
+    .type-btn {
+      flex: 1; padding: .6rem; border-radius: 10px; border: 2px solid var(--cream-dark);
+      background: var(--white); font-family: 'Heebo',sans-serif; font-weight: 700;
+      font-size: .85rem; cursor: pointer; color: var(--text-mid); transition: all .2s; text-align: center;
+    }
+    .type-btn.active-closed { background: #f8d7da; color: #721c24; border-color: #dc3545; }
+    .type-btn.active-custom { background: #fff3cd; color: #856404; border-color: #ffc107; }
+    .type-btn:not(.active-closed):not(.active-custom):hover { background: var(--cream-dark); }
+
+    .slots-builder { margin-bottom: 1.2rem; }
+    .slots-builder label { display: block; font-weight: 700; color: var(--brown-dark); font-size: .87rem; margin-bottom: .5rem; }
+
+    .time-range-row {
+      display: flex; gap: .6rem; align-items: center; margin-bottom: .6rem; flex-wrap: wrap;
+    }
+    .time-range-row input[type="time"] {
+      flex: 1; padding: .55rem .8rem; border: 2px solid var(--cream-dark); border-radius: 9px;
+      font-family: 'Heebo',sans-serif; font-size: .9rem; background: var(--cream);
+      min-width: 100px; direction: ltr;
+    }
+    .time-range-row input[type="time"]:focus { outline: none; border-color: var(--brown-light); }
+    .time-range-row span { color: var(--text-mid); font-size: .85rem; }
+    .btn-gen {
+      padding: .55rem 1.1rem; border-radius: 9px; border: 2px solid var(--brown-light);
+      background: var(--white); color: var(--brown-dark); font-weight: 700; font-size: .82rem;
+      cursor: pointer; font-family: 'Heebo',sans-serif; white-space: nowrap;
+      transition: all .2s;
+    }
+    .btn-gen:hover { background: var(--brown-light); color: #fff; border-color: var(--brown-light); }
+
+    .slots-chips {
+      display: flex; flex-wrap: wrap; gap: .4rem; min-height: 2rem;
+      padding: .5rem; border: 2px dashed var(--cream-dark); border-radius: 9px;
+      background: var(--cream); margin-top: .5rem;
+    }
+    .chip {
+      display: flex; align-items: center; gap: .3rem; background: var(--brown-light);
+      color: #fff; border-radius: 50px; padding: .2rem .65rem .2rem .5rem;
+      font-size: .78rem; font-weight: 700;
+    }
+    .chip button {
+      background: none; border: none; color: rgba(255,255,255,.8); cursor: pointer;
+      font-size: .85rem; line-height: 1; padding: 0;
+    }
+    .chip button:hover { color: #fff; }
+    .slots-empty { color: var(--text-mid); font-size: .78rem; padding: .2rem .3rem; }
+
+    .exc-note { width: 100%; padding: .6rem .9rem; border: 2px solid var(--cream-dark); border-radius: 9px; font-family: 'Heebo',sans-serif; font-size: .9rem; background: var(--cream); direction: rtl; }
+    .exc-note:focus { outline: none; border-color: var(--brown-light); }
+
+    .exc-actions { display: flex; gap: .7rem; margin-top: 1.2rem; }
+    .btn-save {
+      flex: 1; padding: .7rem; border-radius: 10px; border: none;
+      background: var(--brown-mid); color: #fff; font-family: 'Heebo',sans-serif;
+      font-weight: 800; font-size: .9rem; cursor: pointer; transition: background .2s;
+    }
+    .btn-save:hover { background: var(--brown-dark); }
+    .btn-remove {
+      padding: .7rem 1.2rem; border-radius: 10px; border: 2px solid #dc3545;
+      background: #fff; color: #dc3545; font-family: 'Heebo',sans-serif;
+      font-weight: 700; font-size: .85rem; cursor: pointer; transition: all .2s;
+    }
+    .btn-remove:hover { background: #dc3545; color: #fff; }
+    .btn-reset {
+      padding: .7rem 1rem; border-radius: 10px; border: 2px solid var(--cream-dark);
+      background: #fff; color: var(--text-mid); font-family: 'Heebo',sans-serif;
+      font-weight: 700; font-size: .85rem; cursor: pointer; transition: all .2s;
+    }
+    .btn-reset:hover { background: var(--cream-dark); }
+
+    /* exceptions list */
+    .exc-list { margin-top: 2rem; }
+    .exc-list h3 { font-size: 1rem; font-weight: 800; color: var(--brown-dark); margin-bottom: 1rem; }
+    .exc-item {
+      background: var(--white); border-radius: 10px; padding: 1rem 1.2rem;
+      box-shadow: 0 2px 10px var(--shadow); display: flex; align-items: center;
+      gap: 1rem; margin-bottom: .6rem; flex-wrap: wrap;
+    }
+    .exc-item-date { font-weight: 800; color: var(--brown-dark); font-size: .9rem; min-width: 130px; }
+    .exc-type-badge { font-size: .73rem; padding: .2rem .7rem; border-radius: 50px; font-weight: 700; }
+    .exc-type-closed { background: #f8d7da; color: #721c24; }
+    .exc-type-custom { background: #fff3cd; color: #856404; }
+    .exc-note-txt { color: var(--text-mid); font-size: .82rem; flex: 1; }
+    .exc-slots-preview { color: var(--text-mid); font-size: .78rem; }
+    .exc-del {
+      background: none; border: none; color: #dc3545; cursor: pointer;
+      font-size: 1.1rem; padding: .2rem .4rem; border-radius: 5px; transition: background .15s;
+    }
+    .exc-del:hover { background: #f8d7da; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px);
+      background: var(--brown-dark); color: var(--white); padding: .85rem 1.8rem;
+      border-radius: 50px; font-weight: 700; box-shadow: 0 8px 32px rgba(0,0,0,.3);
+      z-index: 9999; transition: transform .4s cubic-bezier(.34,1.56,.64,1); white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    @media(max-width:900px) { .avail-grid { grid-template-columns: 1fr; } }
+    @media(max-width:700px){
+      .admin-table thead { display: none; }
+      .admin-table tr { display: block; margin-bottom: 1rem; border-radius: var(--radius); box-shadow: 0 2px 10px var(--shadow); }
+      .admin-table td { display: flex; justify-content: space-between; padding: .6rem 1rem; }
+      .admin-table td::before { content: attr(data-label); font-weight: 700; color: var(--brown-dark); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="admin-header">
+  <h1>✂ פאנל ניהול – הגראז׳ של טנא</h1>
+  <div style="display:flex;gap:1rem;align-items:center">
+    <a href="/">← חזור לאתר</a>
+    <button onclick="logout()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;padding:.35rem .9rem;border-radius:8px;cursor:pointer;font-family:'Heebo',sans-serif;font-weight:700;font-size:.85rem;">יציאה 🔓</button>
+  </div>
+</div>
+
+<div class="admin-wrap">
+
+  <!-- ══ NETWORK BANNER ══ -->
+  <div id="networkBanner" style="
+    background:var(--white);border-radius:var(--radius);padding:1.2rem 1.6rem;
+    box-shadow:0 4px 20px var(--shadow);margin-bottom:1.5rem;
+    display:flex;align-items:center;gap:1.8rem;flex-wrap:wrap;">
+
+    <!-- QR אתר לקוחות -->
+    <div style="text-align:center">
+      <img id="qrImg" src="" alt="QR אתר" style="width:90px;height:90px;border-radius:8px;display:none;border:2px solid var(--cream-dark)"/>
+      <div style="font-size:.72rem;font-weight:700;color:var(--text-mid);margin-top:.3rem">🌐 אתר לקוחות</div>
+      <div id="networkUrl" style="font-size:.72rem;color:var(--brown-mid);margin-top:.1rem">טוען...</div>
+    </div>
+
+    <!-- QR אדמין -->
+    <div style="text-align:center">
+      <img id="qrAdminImg" src="" alt="QR אדמין" style="width:90px;height:90px;border-radius:8px;display:none;border:2px solid var(--brown-light)"/>
+      <div style="font-size:.72rem;font-weight:700;color:var(--text-mid);margin-top:.3rem">🔧 פאנל ניהול</div>
+      <div id="adminUrl" style="font-size:.72rem;color:var(--brown-mid);margin-top:.1rem">טוען...</div>
+    </div>
+
+    <div style="flex:1;min-width:160px">
+      <div style="font-weight:800;color:var(--brown-dark);margin-bottom:.4rem">📱 גישה מהטלפון</div>
+      <div style="font-size:.82rem;color:var(--text-mid);line-height:1.7">
+        סרוק את הQR המתאים<br/>
+        מכל מקום ומכל רשת ✅
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TABS ══ -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="appointments">📋 תורים</button>
+    <button class="tab-btn" data-tab="availability">📅 זמינות</button>
+    <button class="tab-btn" data-tab="integrations">🔗 חיבורים</button>
+  </div>
+
+  <!-- ══════════ TAB: APPOINTMENTS ══════════ -->
+  <div class="tab-panel active" id="tab-appointments">
+
+    <div class="admin-toolbar">
+      <h2>תורים <span class="count-badge" id="totalCount">0</span></h2>
+      <div class="filter-group">
+        <button class="filter-btn active" data-filter="all">הכל</button>
+        <button class="filter-btn" data-filter="pending">ממתין</button>
+        <button class="filter-btn" data-filter="confirmed">מאושר</button>
+        <button class="filter-btn" data-filter="cancelled">בוטל</button>
+      </div>
+    </div>
+    <div id="tableContainer"></div>
+
+  </div>
+
+  <!-- ══════════ TAB: AVAILABILITY ══════════ -->
+  <div class="tab-panel" id="tab-availability">
+
+    <div class="avail-grid">
+
+      <!-- Mini Calendar -->
+      <div class="avail-cal-box">
+        <h3>📅 בחר תאריך לעריכה</h3>
+        <div class="mini-cal-header">
+          <button id="mprev">&#8250;</button>
+          <span id="mTitle"></span>
+          <button id="mnext">&#8249;</button>
+        </div>
+        <div class="mini-cal-days">
+          <span>א׳</span><span>ב׳</span><span>ג׳</span><span>ד׳</span><span>ה׳</span><span>ו׳</span><span>ש׳</span>
+        </div>
+        <div class="mini-cal-grid" id="mGrid"></div>
+        <div class="cal-legend">
+          <div class="leg"><span class="leg-dot" style="background:#f8d7da;border:1px solid #dc3545"></span> סגור מיוחד</div>
+          <div class="leg"><span class="leg-dot" style="background:#fff3cd;border:1px solid #ffc107"></span> שעות מותאמות</div>
+          <div class="leg"><span class="leg-dot" style="background:var(--brown-dark)"></span> נבחר</div>
+        </div>
+      </div>
+
+      <!-- Exception Form -->
+      <div class="exc-form-box">
+        <h3>✏️ הגדרת זמינות לתאריך</h3>
+
+        <div class="exc-date-display" id="excDateDisplay">← בחר תאריך ביומן</div>
+
+        <div class="type-toggle">
+          <button class="type-btn" id="btnClosed" onclick="setType('closed')">🚫 יום סגור</button>
+          <button class="type-btn" id="btnCustom" onclick="setType('custom')">🕐 שעות מותאמות</button>
+          <button class="type-btn" id="btnNormal" onclick="setType('normal')">✅ רגיל (ברירת מחדל)</button>
+        </div>
+
+        <div id="slotsSection" style="display:none">
+          <div class="slots-builder">
+            <label>🕐 בנה שעות פנויות</label>
+            <div class="time-range-row">
+              <input type="time" id="slotFrom" value="10:00"/>
+              <span>עד</span>
+              <input type="time" id="slotTo"   value="18:00"/>
+              <button class="btn-gen" onclick="generateSlots()">⚡ צור שעות</button>
+            </div>
+            <div class="slots-chips" id="slotsChips">
+              <span class="slots-empty">אין שעות – לחץ "צור שעות" או הוסף ידנית</span>
+            </div>
+            <div class="time-range-row" style="margin-top:.5rem">
+              <input type="time" id="slotManual"/>
+              <button class="btn-gen" onclick="addManualSlot()">+ הוסף שעה</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:1rem">
+          <label style="display:block;font-weight:700;color:var(--brown-dark);font-size:.87rem;margin-bottom:.4rem">📝 הערה (אופציונלי)</label>
+          <input class="exc-note" type="text" id="excNote" placeholder='למשל: "חופשה", "בית חולים", "שעות קצרות"'/>
+        </div>
+
+        <div class="exc-actions">
+          <button class="btn-save" onclick="saveException()">💾 שמור</button>
+          <button class="btn-remove" id="btnRemoveExc" style="display:none" onclick="removeException()">🗑 הסר חריג</button>
+          <button class="btn-reset" onclick="resetForm()">ביטול</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exceptions List -->
+    <div class="exc-list">
+      <h3>📋 חריגים קיימים</h3>
+      <div id="excListContainer"><p class="empty-state" style="padding:2rem">אין חריגים מוגדרים</p></div>
+    </div>
+
+  </div>
+
+  <!-- ══════════ TAB: INTEGRATIONS ══════════ -->
+  <div class="tab-panel" id="tab-integrations">
+    <div class="integrations" id="integrations">
+      <div class="int-card" id="cardTwilio">
+        <div class="int-icon">💬</div>
+        <div class="int-body">
+          <h3>Twilio SMS</h3>
+          <p id="twilioDesc">בודק...</p>
+        </div>
+        <span class="int-status" id="twilioStatus">...</span>
+      </div>
+      <div class="int-card" id="cardCalendar">
+        <div class="int-icon">📅</div>
+        <div class="int-body">
+          <h3>Google Calendar</h3>
+          <p id="calendarDesc">בודק...</p>
+          <div id="calendarAction"></div>
+        </div>
+        <span class="int-status" id="calendarStatus">...</span>
+      </div>
+    </div>
+    <div style="background:var(--white);border-radius:var(--radius);padding:1.5rem 2rem;box-shadow:0 4px 20px var(--shadow);max-width:600px">
+      <h3 style="font-weight:800;color:var(--brown-dark);margin-bottom:1rem">🔧 הגדרת חיבורים</h3>
+      <p style="color:var(--text-mid);font-size:.9rem;line-height:1.8">
+        עריכת קובץ <strong>.env</strong> בתיקיית הפרויקט:<br/>
+        <code style="background:var(--cream-dark);padding:.2rem .5rem;border-radius:5px;font-size:.85rem">TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER</code><br/>
+        <code style="background:var(--cream-dark);padding:.2rem .5rem;border-radius:5px;font-size:.85rem">GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET</code><br/><br/>
+        לאחר עריכת ה-.env – הפעל מחדש את השרת, ואז לחיבור Google Calendar:
+      </p>
+      <a class="btn-connect" href="/auth/google" target="_blank" style="margin-top:.8rem;display:inline-block">🔗 חבר Google Calendar</a>
+    </div>
+  </div>
+
+</div><!-- /admin-wrap -->
+
+<script>
+// ═══════════════════════════════════════════
+//  TABS
+// ═══════════════════════════════════════════
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ═══════════════════════════════════════════
+//  APPOINTMENTS TAB
+// ═══════════════════════════════════════════
+let appointments  = [];
+let currentFilter = 'all';
+
+async function loadAppointments() {
+  try {
+    appointments = await fetch('/api/appointments').then(r => r.json());
+    renderTable();
+  } catch {
+    document.getElementById('tableContainer').innerHTML =
+      '<p class="empty-state">❗ שגיאה בטעינת הנתונים</p>';
+  }
+}
+
+function renderTable() {
+  const filtered = currentFilter === 'all'
+    ? appointments
+    : appointments.filter(a => a.status === currentFilter);
+
+  document.getElementById('totalCount').textContent = filtered.length;
+  if (!filtered.length) {
+    document.getElementById('tableContainer').innerHTML =
+      '<p class="empty-state">אין תורים להצגה</p>';
+    return;
+  }
+
+  const sLabel = { pending:'ממתין', confirmed:'מאושר', cancelled:'בוטל' };
+  const sCls   = { pending:'status-pending', confirmed:'status-confirmed', cancelled:'status-cancelled' };
+
+  const smsTag = v => v === 'sent'
+    ? `<span class="sms-tag sms-ok">✓ נשלח</span>`
+    : v ? `<span class="sms-tag sms-fail">✗</span>` : `<span class="sms-tag sms-none">—</span>`;
+  const calTag = v => v
+    ? `<span class="cal-tag cal-ok">📅</span>` : `<span class="cal-tag cal-none">—</span>`;
+
+  const rows = filtered.map(a => `
+    <tr>
+      <td data-label="שם">${a.name}</td>
+      <td data-label="טלפון"><a href="tel:${a.phone}">${a.phone}</a></td>
+      <td data-label="תאריך">${a.date}</td>
+      <td data-label="שעה"><strong>${a.time}</strong></td>
+      <td data-label="שירות">${a.service}</td>
+      <td data-label="סטטוס"><span class="status-badge ${sCls[a.status]}">${sLabel[a.status]}</span></td>
+      <td data-label="SMS">${smsTag(a.smsCustomer)} ${smsTag(a.smsBarber)}</td>
+      <td data-label="יומן">${calTag(a.calendarEventId)}</td>
+      <td data-label="פעולות">
+        <div class="admin-actions">
+          ${a.status!=='confirmed' ? `<button class="btn-sm btn-confirm" onclick="updateStatus('${a.id}','confirmed')">✅ אשר</button>`:''}
+          ${a.status!=='cancelled' ? `<button class="btn-sm btn-cancel"  onclick="updateStatus('${a.id}','cancelled')">❌ בטל</button>`:''}
+          <button class="btn-sm btn-sms"    onclick="sendSms('${a.id}')">💬</button>
+          <button class="btn-sm btn-delete" onclick="deleteAppt('${a.id}')">🗑</button>
+        </div>
+      </td>
+    </tr>`).join('');
+
+  document.getElementById('tableContainer').innerHTML = `
+    <table class="admin-table">
+      <thead><tr>
+        <th>שם</th><th>טלפון</th><th>תאריך</th><th>שעה</th>
+        <th>שירות</th><th>סטטוס</th><th>SMS</th><th>יומן</th><th>פעולות</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderTable();
+  });
+});
+
+async function updateStatus(id, status) {
+  showToast('מעדכן...');
+  await fetch(`/api/appointments/${id}`, {
+    method:'PATCH', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ status }),
+  });
+  await loadAppointments();
+  showToast(status==='confirmed' ? '✅ אושר!' : '❌ בוטל');
+}
+async function sendSms(id) {
+  showToast('שולח SMS...');
+  const r = await fetch(`/api/appointments/${id}/sms`,{method:'POST'}).then(r=>r.json());
+  showToast(r.ok ? '💬 SMS נשלח!' : '❗ ' + r.reason);
+}
+async function deleteAppt(id) {
+  if (!confirm('למחוק?')) return;
+  await fetch(`/api/appointments/${id}`,{method:'DELETE'});
+  await loadAppointments();
+  showToast('🗑 נמחק');
+}
+
+// ═══════════════════════════════════════════
+//  AVAILABILITY TAB
+// ═══════════════════════════════════════════
+const JS_OPEN_ADMIN = {0:true,1:false,2:true,3:true,4:true,5:true,6:false};
+let exceptions = {};
+let mYear, mMonth, selectedExcDate = null;
+let currentType = null;
+let currentSlots = [];
+let currentExcId = null;
+
+function isoDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+async function loadExceptions() {
+  const list = await fetch('/api/schedule').then(r => r.json()).catch(() => []);
+  exceptions = {};
+  list.forEach(e => exceptions[e.date] = e);
+  renderMiniCal();
+  renderExcList();
+}
+
+// ── Mini Calendar ────────────────────────────────────────────────────────
+function initMiniCal() {
+  const t = new Date();
+  mYear = t.getFullYear(); mMonth = t.getMonth();
+  renderMiniCal();
+}
+
+function renderMiniCal() {
+  const months = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  document.getElementById('mTitle').textContent = `${months[mMonth]} ${mYear}`;
+  const grid = document.getElementById('mGrid');
+  grid.innerHTML = '';
+
+  const today    = new Date(); today.setHours(0,0,0,0);
+  const firstDay = new Date(mYear, mMonth, 1).getDay();
+  const total    = new Date(mYear, mMonth+1, 0).getDate();
+
+  for (let i=0;i<firstDay;i++) {
+    const e = document.createElement('div');
+    e.className = 'mcell empty'; grid.appendChild(e);
+  }
+
+  for (let d=1;d<=total;d++) {
+    const date = new Date(mYear, mMonth, d);
+    const key  = isoDate(date);
+    const exc  = exceptions[key];
+    const isPast = date < today;
+
+    const cell = document.createElement('div');
+    cell.textContent = d;
+    cell.className   = 'mcell';
+
+    if (isPast) { cell.classList.add('past'); }
+    else {
+      if (exc?.type === 'closed') cell.classList.add('exc-closed');
+      else if (exc?.type === 'custom') cell.classList.add('exc-custom');
+      else cell.classList.add('normal');
+      cell.addEventListener('click', () => selectExcDate(date));
+    }
+
+    if (date.getTime() === today.getTime()) cell.classList.add('today-cell');
+    if (selectedExcDate && date.toDateString() === selectedExcDate.toDateString())
+      cell.classList.add('selected');
+
+    if (exc) cell.title = (exc.type==='closed'?'סגור':'שעות מותאמות') + (exc.note ? ' – '+exc.note : '');
+
+    grid.appendChild(cell);
+  }
+}
+
+document.getElementById('mprev').addEventListener('click', () => {
+  if (--mMonth < 0) { mMonth=11; mYear--; }
+  renderMiniCal();
+});
+document.getElementById('mnext').addEventListener('click', () => {
+  if (++mMonth > 11) { mMonth=0; mYear++; }
+  renderMiniCal();
+});
+
+// ── Select date ───────────────────────────────────────────────────────────
+function selectExcDate(date) {
+  selectedExcDate = date;
+  renderMiniCal();
+
+  const DAYS   = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+  const MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  document.getElementById('excDateDisplay').textContent =
+    `יום ${DAYS[date.getDay()]}, ${date.getDate()} ${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+
+  const key = isoDate(date);
+  const exc = exceptions[key];
+
+  if (exc) {
+    currentExcId = exc.id;
+    document.getElementById('excNote').value = exc.note || '';
+    document.getElementById('btnRemoveExc').style.display = '';
+    if (exc.type === 'closed') {
+      setType('closed');
+    } else {
+      setType('custom');
+      currentSlots = [...(exc.slots || [])];
+      renderChips();
+    }
+  } else {
+    currentExcId = null;
+    document.getElementById('excNote').value = '';
+    document.getElementById('btnRemoveExc').style.display = 'none';
+    setType(JS_OPEN_ADMIN[date.getDay()] ? 'normal' : 'closed');
+    currentSlots = [];
+    renderChips();
+  }
+}
+
+// ── Type buttons ──────────────────────────────────────────────────────────
+function setType(t) {
+  currentType = t;
+  document.getElementById('btnClosed').className = 'type-btn' + (t==='closed' ? ' active-closed' : '');
+  document.getElementById('btnCustom').className = 'type-btn' + (t==='custom' ? ' active-custom' : '');
+  document.getElementById('btnNormal').className = 'type-btn' + (t==='normal' ? ' active-closed' : '');
+  if(t==='normal') document.getElementById('btnNormal').className='type-btn active-closed';
+  document.getElementById('slotsSection').style.display = t==='custom' ? '' : 'none';
+}
+
+// ── Slot chips ────────────────────────────────────────────────────────────
+function renderChips() {
+  const box = document.getElementById('slotsChips');
+  if (!currentSlots.length) {
+    box.innerHTML = '<span class="slots-empty">אין שעות – לחץ "צור שעות" או הוסף ידנית</span>';
+    return;
+  }
+  const sorted = [...currentSlots].sort();
+  box.innerHTML = sorted.map(s => `
+    <div class="chip">
+      ${s}
+      <button onclick="removeSlot('${s}')">×</button>
+    </div>`).join('');
+}
+
+function generateSlots() {
+  const from = document.getElementById('slotFrom').value;
+  const to   = document.getElementById('slotTo').value;
+  if (!from || !to) { showToast('❗ הזן שעת התחלה וסיום'); return; }
+
+  const [fh, fm] = from.split(':').map(Number);
+  const [th, tm] = to.split(':').map(Number);
+  let cur = fh*60+fm, end = th*60+tm;
+  if (cur >= end) { showToast('❗ שעת ההתחלה חייבת להיות לפני הסיום'); return; }
+
+  const newSlots = [];
+  while (cur < end) {
+    const h = Math.floor(cur/60), m = cur%60;
+    newSlots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+    cur += 30;
+  }
+  // merge + deduplicate
+  currentSlots = [...new Set([...currentSlots, ...newSlots])];
+  renderChips();
+  showToast(`✅ נוצרו ${newSlots.length} שעות`);
+}
+
+function addManualSlot() {
+  const t = document.getElementById('slotManual').value;
+  if (!t) return;
+  if (!currentSlots.includes(t)) { currentSlots.push(t); renderChips(); }
+  document.getElementById('slotManual').value = '';
+}
+
+function removeSlot(s) {
+  currentSlots = currentSlots.filter(x => x !== s);
+  renderChips();
+}
+
+// ── Save / Remove ─────────────────────────────────────────────────────────
+async function saveException() {
+  if (!selectedExcDate) { showToast('❗ בחר תאריך תחילה'); return; }
+  if (currentType === 'normal') { await removeException(); return; }
+  if (currentType === 'custom' && !currentSlots.length) {
+    showToast('❗ הוסף לפחות שעה אחת'); return;
+  }
+
+  const body = {
+    date:  isoDate(selectedExcDate),
+    type:  currentType,
+    note:  document.getElementById('excNote').value,
+    slots: currentType==='custom' ? [...currentSlots].sort() : [],
+  };
+
+  const res = await fetch('/api/schedule', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body),
+  });
+
+  if (res.ok) {
+    showToast('✅ נשמר בהצלחה!');
+    await loadExceptions();
+    resetForm();
+  } else {
+    showToast('❗ שגיאה בשמירה');
+  }
+}
+
+async function removeException() {
+  if (!currentExcId) { showToast('אין חריג למחיקה'); return; }
+  await fetch(`/api/schedule/${currentExcId}`, { method:'DELETE' });
+  showToast('🗑 החריג הוסר');
+  await loadExceptions();
+  resetForm();
+}
+
+function resetForm() {
+  selectedExcDate = null;
+  currentType = null;
+  currentSlots = [];
+  currentExcId = null;
+  document.getElementById('excDateDisplay').textContent = '← בחר תאריך ביומן';
+  document.getElementById('excNote').value = '';
+  document.getElementById('btnRemoveExc').style.display = 'none';
+  document.getElementById('slotsSection').style.display = 'none';
+  ['btnClosed','btnCustom','btnNormal'].forEach(id => document.getElementById(id).className = 'type-btn');
+  renderMiniCal();
+}
+
+// ── Exceptions list ───────────────────────────────────────────────────────
+function renderExcList() {
+  const container = document.getElementById('excListContainer');
+  const list = Object.values(exceptions).sort((a,b) => a.date.localeCompare(b.date));
+
+  if (!list.length) {
+    container.innerHTML = '<p class="empty-state" style="padding:2rem">אין חריגים מוגדרים</p>';
+    return;
+  }
+
+  const DAYS=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+  const MONTHS=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+
+  container.innerHTML = list.map(e => {
+    const d = new Date(e.date + 'T00:00:00');
+    const label = `יום ${DAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+    const typeBadge = e.type==='closed'
+      ? `<span class="exc-type-badge exc-type-closed">🚫 סגור</span>`
+      : `<span class="exc-type-badge exc-type-custom">🕐 שעות מותאמות</span>`;
+    const slotsPreview = e.type==='custom' && e.slots?.length
+      ? `<span class="exc-slots-preview">${e.slots.slice(0,4).join(', ')}${e.slots.length>4?' ...':''} (${e.slots.length} שעות)</span>`
+      : '';
+
+    return `
+      <div class="exc-item">
+        <div class="exc-item-date">${label}</div>
+        ${typeBadge}
+        ${e.note ? `<div class="exc-note-txt">${e.note}</div>` : ''}
+        ${slotsPreview}
+        <button class="exc-del" onclick="quickDelete('${e.id}')" title="מחק">🗑</button>
+      </div>`;
+  }).join('');
+}
+
+async function quickDelete(id) {
+  if (!confirm('להסיר את החריג?')) return;
+  await fetch(`/api/schedule/${id}`,{method:'DELETE'});
+  showToast('🗑 הוסר');
+  await loadExceptions();
+}
+
+// ═══════════════════════════════════════════
+//  INTEGRATIONS TAB
+// ═══════════════════════════════════════════
+async function loadStatus() {
+  try {
+    const s = await fetch('/api/status').then(r => r.json());
+    const tw = s.twilio;
+    const cardTw = document.getElementById('cardTwilio');
+    document.getElementById('twilioDesc').textContent = tw.configured ? 'SMS אוטומטי ללקוחות ולספר' : 'הגדר TWILIO_* ב-.env';
+    const twSt = document.getElementById('twilioStatus');
+    twSt.textContent = tw.configured ? '✅ פעיל' : '⚠️ לא מוגדר';
+    twSt.className   = 'int-status '+(tw.configured?'ok':'warn');
+    cardTw.className = 'int-card '+(tw.configured?'ok':'warn');
+
+    const cal = s.calendar;
+    const cardCal = document.getElementById('cardCalendar');
+    const calSt   = document.getElementById('calendarStatus');
+    const calAct  = document.getElementById('calendarAction');
+    if (!cal.configured) {
+      document.getElementById('calendarDesc').textContent = 'הגדר GOOGLE_* ב-.env';
+      calSt.textContent='⚠️ לא מוגדר'; calSt.className='int-status warn'; cardCal.className='int-card warn';
+    } else if (!cal.authorized) {
+      document.getElementById('calendarDesc').textContent = 'מוגדר – נדרש אישור';
+      calSt.textContent='🔐 לא מורשה'; calSt.className='int-status warn'; cardCal.className='int-card warn';
+      calAct.innerHTML=`<a class="btn-connect" href="${cal.authUrl}" target="_blank">🔗 חבר את גוגל</a>`;
+    } else {
+      document.getElementById('calendarDesc').textContent = 'תורים מתווספים אוטומטית';
+      calSt.textContent='✅ מחובר'; calSt.className='int-status ok'; cardCal.className='int-card ok';
+    }
+  } catch(e) { console.error(e); }
+}
+
+// ═══════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════
+function showToast(msg) {
+  let t = document.querySelector('.toast');
+  if (!t) { t=document.createElement('div'); t.className='toast'; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ═══════════════════════════════════════════
+//  LOGOUT
+// ═══════════════════════════════════════════
+async function logout() {
+  await fetch('/api/logout', { method: 'POST' });
+  window.location.href = '/login';
+}
+
+// ═══════════════════════════════════════════
+//  NETWORK BANNER
+// ═══════════════════════════════════════════
+async function loadNetwork() {
+  try {
+    const n = await fetch('/api/network').then(r => r.json());
+
+    const qr = document.getElementById('qrImg');
+    qr.src = n.qr; qr.style.display = 'block';
+    document.getElementById('networkUrl').textContent = n.url;
+
+    const qrA = document.getElementById('qrAdminImg');
+    qrA.src = n.qrAdmin; qrA.style.display = 'block';
+    document.getElementById('adminUrl').textContent = n.adminUrl;
+  } catch {}
+}
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+loadNetwork();
+loadAppointments();
+loadStatus();
+loadExceptions().then(initMiniCal);
+setInterval(loadAppointments, 30000);
+setInterval(loadStatus, 60000);
+</script>
+</body>
+</html>
