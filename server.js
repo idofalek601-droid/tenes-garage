@@ -261,9 +261,10 @@ app.patch('/api/appointments/:id', requireAuth, async (req, res) => {
   // שלח מיילים/SMS ברקע
   if (status === 'confirmed') {
     Promise.all([
-      sms.sendApprovalSms(list[idx]).catch(() => ({ ok: false })),
-      email.sendApprovalEmail(list[idx]).catch(() => ({ ok: false })),
+      sms.sendApprovalSms(list[idx]).catch(e => { console.error('[SMS approval error]', e.message); return { ok: false }; }),
+      email.sendApprovalEmail(list[idx]).catch(e => { console.error('[Email approval error]', e.message); return { ok: false }; }),
     ]).then(([smsRes, emailRes]) => {
+      console.log('[Approval] SMS:', smsRes, '| Email:', emailRes);
       const fresh = readDB();
       const i = fresh.findIndex(a => a.id === req.params.id);
       if (i !== -1) {
