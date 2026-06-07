@@ -555,12 +555,23 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 
 async function updateStatus(id, status) {
   showToast('מעדכן...');
-  await fetch(`/api/appointments/${id}`, {
-    method:'PATCH', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ status }),
-  });
-  await loadAppointments();
-  showToast(status==='confirmed' ? '✅ אושר!' : '❌ בוטל');
+  try {
+    const r = await fetch(`/api/appointments/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ status }),
+    });
+    const json = await r.json();
+    if (!r.ok) {
+      showToast('❗ שגיאה: ' + (json.error || r.status));
+      return;
+    }
+    await loadAppointments();
+    showToast(status === 'confirmed' ? '✅ אושר!' : '❌ בוטל');
+  } catch (err) {
+    showToast('❗ שגיאת חיבור: ' + err.message);
+  }
 }
 async function sendSms(id) {
   showToast('שולח SMS...');
