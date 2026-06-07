@@ -278,6 +278,21 @@ footer a:hover { text-decoration: underline; }
 .status-confirmed { background: rgba(40,167,69,.2);  color: #5cb85c; }
 .status-cancelled { background: rgba(220,53,69,.2);  color: #dc3545; }
 
+/* ===== PARTICLE CANVAS ===== */
+#particleCanvas {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+}
+.hero-content { z-index: 2; }
+
+/* ===== HERO LOGO GLOW ===== */
+.hero-logo {
+  animation: logoPulse 3s ease-in-out infinite;
+}
+@keyframes logoPulse {
+  0%,100% { box-shadow: 0 0 20px rgba(155,89,182,.3), 0 0 40px rgba(155,89,182,.1); }
+  50%      { box-shadow: 0 0 35px rgba(155,89,182,.6), 0 0 70px rgba(155,89,182,.25); }
+}
+
 /* ===== HERO STATS ===== */
 .hero-stats {
   display: flex; align-items: center; justify-content: center;
@@ -314,7 +329,15 @@ footer a:hover { text-decoration: underline; }
   position: relative; transition: transform var(--transition), border-color var(--transition);
 }
 .price-card:hover { transform: translateY(-6px); border-color: var(--gold); }
-.price-card.featured { border-color: var(--gold); background: linear-gradient(135deg, var(--dark-light), rgba(155,89,182,.08)); }
+.price-card.featured {
+  border-color: var(--gold);
+  background: linear-gradient(135deg, var(--dark-light), rgba(155,89,182,.08));
+  animation: featuredGlow 2.5s ease-in-out infinite;
+}
+@keyframes featuredGlow {
+  0%,100% { box-shadow: 0 0 0 rgba(155,89,182,0); }
+  50%      { box-shadow: 0 0 28px rgba(155,89,182,.25); }
+}
 .price-icon { font-size: 2.2rem; margin-bottom: .8rem; }
 .price-name { font-weight: 700; color: var(--white); font-size: 1.1rem; margin-bottom: 1rem; }
 .price-amount {

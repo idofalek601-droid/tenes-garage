@@ -41,6 +41,7 @@
 <!-- ══ HERO ══ -->
 <section class="hero">
   <div class="hero-bg"></div>
+  <canvas id="particleCanvas"></canvas>
   <div class="hero-content">
     <img src="images/logo.jpg" alt="לוגו" class="hero-logo" onerror="this.style.display='none'"/>
     <p class="hero-tag">✂ מספרת גברים מקצועית</p>
@@ -236,11 +237,9 @@
           <div class="form-group">
             <label>✂ סוג שירות</label>
             <select id="service">
-              <option value="תספורת">תספורת</option>
-              <option value="פייד">פייד</option>
-              <option value="תספורת + עיצוב זקן">תספורת + עיצוב זקן</option>
-              <option value="עיצוב זקן בלבד">עיצוב זקן בלבד</option>
-              <option value="טקסצ'ר">טקסצ'ר</option>
+              <option value="תספורת רגילה">✂ תספורת רגילה – ₪50</option>
+              <option value="תספורת ילדים">👦 תספורת ילדים – ₪50</option>
+              <option value="תספורת חייל">🪖 תספורת חייל – ₪40</option>
             </select>
           </div>
           <button type="submit" class="btn-primary full">שלח בקשת תור ←</button>
@@ -296,10 +295,60 @@
   const todayRow = document.getElementById('day-' + new Date().getDay());
   if (todayRow && !todayRow.classList.contains('closed')) todayRow.classList.add('today');
 
+  // ══ חלקיקים בהירו ══
+  (function() {
+    const canvas = document.getElementById('particleCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    resize();
+    window.addEventListener('resize', resize);
+    function randomParticle() {
+      return {
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.8 + 0.3,
+        dx: (Math.random() - 0.5) * 0.4,
+        dy: -Math.random() * 0.5 - 0.2,
+        alpha: Math.random() * 0.6 + 0.2,
+        color: Math.random() > 0.5 ? '155,89,182' : '184,127,212',
+      };
+    }
+    for (let i = 0; i < 80; i++) particles.push(randomParticle());
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${p.color},${p.alpha})`;
+        ctx.fill();
+        p.x += p.dx; p.y += p.dy; p.alpha -= 0.0015;
+        if (p.alpha <= 0 || p.y < -10) Object.assign(p, randomParticle(), { y: canvas.height + 10, alpha: Math.random() * 0.5 + 0.2 });
+      });
+      requestAnimationFrame(draw);
+    }
+    draw();
+  })();
+
+  // ══ Counter animation לסטטיסטיקות ══
+  function animateCounter(el, target, suffix, duration) {
+    const isDecimal = target % 1 !== 0;
+    const start = performance.now();
+    function update(now) {
+      const p = Math.min((now - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - p, 3);
+      const val = isDecimal ? (target * ease).toFixed(1) : Math.floor(target * ease);
+      el.textContent = val + suffix;
+      if (p < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  }
+
   // ══ אנימציות כניסה ══
   document.addEventListener('DOMContentLoaded', () => {
     // Hero animation
-    setTimeout(() => document.querySelector('.hero-content')?.classList.add('hero-visible'), 100);
+    setTimeout(() => document.querySelector('.hero-content')?.classList.add('hero-visible'), 150);
 
     // Scroll animations
     const observer = new IntersectionObserver((entries) => {
@@ -315,6 +364,21 @@
       el.style.transitionDelay = (i * 0.07) + 's';
       observer.observe(el);
     });
+
+    // Counter animation כשה-stats נכנסים למסך
+    const statsObserver = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const nums = e.target.querySelectorAll('.stat-num');
+          if (nums[0]) animateCounter(nums[0], 4.9, '', 1200);
+          if (nums[1]) animateCounter(nums[1], 100, '+', 1400);
+          if (nums[2]) animateCounter(nums[2], 3, '+', 1000);
+          statsObserver.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.5 });
+    const statsEl = document.querySelector('.hero-stats');
+    if (statsEl) statsObserver.observe(statsEl);
   });
 
   // ══ מודל בדיקת סטטוס ══
