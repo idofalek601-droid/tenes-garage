@@ -217,33 +217,25 @@ app.post('/api/appointments', async (req, res) => {
   list.push(appt);
   writeDB(list);
 
-  // ── שלח SMS + מייל ─────────────────────────────────────────────────────
-  const [smsC, smsB, emailC, emailB] = await Promise.all([
-    sms.sendCustomerConfirmation(appt),
-    sms.sendBarberAlert(appt),
-    email.sendCustomerBookingEmail(appt),
-    email.sendBarberAlertEmail(appt),
-  ]);
-  appt.smsCustomer = smsC.ok ? 'sent' : ('failed: ' + smsC.reason);
-  appt.smsBarber   = smsB.ok ? 'sent' : ('failed: ' + smsB.reason);
+  // ✅ מחזירים הצלחה מיד – לא מחכים למיילים/SMS
+  res.status(201).json({ ok: true, appointment: appt });
 
-  // ── הוסף ל-Google Calendar ─────────────────────────────────────────────
-  const calRes = await calendar.addToCalendar(appt);
-  if (calRes.ok) appt.calendarEventId = calRes.eventId;
-
-  // עדכן DB עם תוצאות
-  const idx = list.findIndex(a => a.id === appt.id);
-  if (idx !== -1) { list[idx] = appt; writeDB(list); }
-
-  res.status(201).json({
-    ok: true,
-    appointment: appt,
-    integrations: {
-      smsCustomer: smsC,
-      smsBarber:   smsB,
-      calendar:    calRes,
-    },
-  });
+  // שולחים מיילים/SMS ברקע (לא חוסמים את המשתמש)
+  Promise.all([
+    sms.sendCustomerConfirmation(appt).catch(() => {}),
+    sms.sendBarberAlert(appt).catch(() => {}),
+    email.sendCustomerBookingEmail(appt).catch(() => {}),
+    email.sendBarberAlertEmail(appt).catch(() => {}),
+  ]).then(([smsC, smsB]) => {
+    appt.smsCustomer = smsC?.ok ? 'sent' : 'failed';
+    appt.smsBarber   = smsB?.ok ? 'sent' : 'failed';
+    return calendar.addToCalendar(appt).catch(() => ({ ok: false }));
+  }).then(calRes => {
+    if (calRes?.ok) appt.calendarEventId = calRes.eventId;
+    const fresh = readDB();
+    const idx   = fresh.findIndex(a => a.id === appt.id);
+    if (idx !== -1) { fresh[idx] = appt; writeDB(fresh); }
+  }).catch(() => {});
 });
 
 /** עדכן סטטוס תור – אדמין בלבד */
