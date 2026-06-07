@@ -177,6 +177,12 @@ app.get('/api/network', requireAuth, async (req, res) => {
   res.json({ ip: LOCAL_IP, port: PORT, url, qr, adminUrl, qrAdmin });
 });
 
+/** מחק את כל התורים – אדמין בלבד (לאיפוס) */
+app.delete('/api/appointments/all', requireAuth, (req, res) => {
+  writeDB([]);
+  res.json({ ok: true, message: 'כל התורים נמחקו' });
+});
+
 /** קבל את כל התורים – אדמין בלבד */
 app.get('/api/appointments', requireAuth, (req, res) => {
   const list = readDB();
