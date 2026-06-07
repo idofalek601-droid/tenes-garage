@@ -255,25 +255,28 @@ app.patch('/api/appointments/:id', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'סטטוס לא חוקי' });
 
   list[idx].status = status;
+  writeDB(list); // שמור מיד – לא מחכים למיילים
+  res.json({ ok: true, appointment: list[idx] }); // החזר הצלחה מיד
 
-  // אם אישרו – שלח SMS + מייל אישור ללקוח
+  // שלח מיילים/SMS ברקע
   if (status === 'confirmed') {
-    const [smsRes, emailRes] = await Promise.all([
-      sms.sendApprovalSms(list[idx]),
-      email.sendApprovalEmail(list[idx]),
-    ]);
-    list[idx].smsApproval   = smsRes.ok   ? 'sent' : ('failed: ' + smsRes.reason);
-    list[idx].emailApproval = emailRes.ok ? 'sent' : ('failed: ' + emailRes.reason);
+    Promise.all([
+      sms.sendApprovalSms(list[idx]).catch(() => ({ ok: false })),
+      email.sendApprovalEmail(list[idx]).catch(() => ({ ok: false })),
+    ]).then(([smsRes, emailRes]) => {
+      const fresh = readDB();
+      const i = fresh.findIndex(a => a.id === req.params.id);
+      if (i !== -1) {
+        fresh[i].smsApproval   = smsRes?.ok ? 'sent' : 'failed';
+        fresh[i].emailApproval = emailRes?.ok ? 'sent' : 'failed';
+        writeDB(fresh);
+      }
+    }).catch(() => {});
   }
 
-  // אם בוטל – מחק מ-Google Calendar
   if (status === 'cancelled' && list[idx].calendarEventId) {
-    await calendar.deleteFromCalendar(list[idx].calendarEventId);
-    list[idx].calendarEventId = null;
+    calendar.deleteFromCalendar(list[idx].calendarEventId).catch(() => {});
   }
-
-  writeDB(list);
-  res.json({ ok: true, appointment: list[idx] });
 });
 
 /** שלח SMS ידני מהאדמין */
