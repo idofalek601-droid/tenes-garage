@@ -145,23 +145,12 @@ app.get('/api/check-status', (req, res) => {
   });
 });
 
-// ══════════════════════════════════════════════════════════════════════════
-//  כל ה-API מכאן והלאה – מוגן בהתחברות (למעט POST מלקוחות)
-// ══════════════════════════════════════════════════════════════════════════
-app.use('/api/appointments', (req, res, next) => {
-  // POST = לקוח קובע תור → ציבורי
-  if (req.method === 'POST') return next();
-  // כל השאר (GET, PATCH, DELETE) = אדמין בלבד
-  return requireAuth(req, res, next);
-});
-app.use('/api/schedule',     requireAuth);
-app.use('/api/status',       requireAuth);
-app.use('/api/network',      requireAuth);
+// (routes מוגדרים למטה עם requireAuth ישירות על כל route)
 
 // ══════════════════════════════════════════════════════════════════════════
 //  STATUS API – מצב חיבורים
 // ══════════════════════════════════════════════════════════════════════════
-app.get('/api/status', (req, res) => {
+app.get('/api/status', requireAuth, (req, res) => {
   res.json({
     twilio:   { configured: sms.isConfigured },
     calendar: {
@@ -177,7 +166,7 @@ app.get('/api/status', (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════
 
 // ── API: מידע רשת + QR ────────────────────────────────────────────────────
-app.get('/api/network', async (req, res) => {
+app.get('/api/network', requireAuth, async (req, res) => {
   const url      = `http://${LOCAL_IP}:${PORT}`;
   const adminUrl = `http://${LOCAL_IP}:${PORT}/admin`;
   const opts     = { width: 200, margin: 1, color: { dark: '#3b1f0e', light: '#fdf6ee' } };
@@ -188,8 +177,8 @@ app.get('/api/network', async (req, res) => {
   res.json({ ip: LOCAL_IP, port: PORT, url, qr, adminUrl, qrAdmin });
 });
 
-/** קבל את כל התורים */
-app.get('/api/appointments', (req, res) => {
+/** קבל את כל התורים – אדמין בלבד */
+app.get('/api/appointments', requireAuth, (req, res) => {
   const list = readDB();
   list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   res.json(list);
@@ -251,8 +240,8 @@ app.post('/api/appointments', async (req, res) => {
   });
 });
 
-/** עדכן סטטוס תור */
-app.patch('/api/appointments/:id', async (req, res) => {
+/** עדכן סטטוס תור – אדמין בלבד */
+app.patch('/api/appointments/:id', requireAuth, async (req, res) => {
   const list = readDB();
   const idx  = list.findIndex(a => a.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'תור לא נמצא' });
@@ -284,7 +273,7 @@ app.patch('/api/appointments/:id', async (req, res) => {
 });
 
 /** שלח SMS ידני מהאדמין */
-app.post('/api/appointments/:id/sms', async (req, res) => {
+app.post('/api/appointments/:id/sms', requireAuth, async (req, res) => {
   const list = readDB();
   const appt = list.find(a => a.id === req.params.id);
   if (!appt) return res.status(404).json({ error: 'תור לא נמצא' });
@@ -293,8 +282,8 @@ app.post('/api/appointments/:id/sms', async (req, res) => {
   res.json(result);
 });
 
-/** מחק תור */
-app.delete('/api/appointments/:id', async (req, res) => {
+/** מחק תור – אדמין בלבד */
+app.delete('/api/appointments/:id', requireAuth, async (req, res) => {
   let list = readDB();
   const appt = list.find(a => a.id === req.params.id);
 
@@ -325,8 +314,8 @@ app.get('/api/schedule/:date', (req, res) => {
   res.json(entry);
 });
 
-/** הוסף / עדכן חריג */
-app.post('/api/schedule', (req, res) => {
+/** הוסף / עדכן חריג – אדמין בלבד */
+app.post('/api/schedule', requireAuth, (req, res) => {
   const { date, type, note, slots } = req.body;
   if (!date || !type) return res.status(400).json({ error: 'date ו-type נדרשים' });
   if (!['closed', 'custom'].includes(type))
@@ -335,8 +324,8 @@ app.post('/api/schedule', (req, res) => {
   res.status(201).json({ ok: true, entry });
 });
 
-/** מחק חריג */
-app.delete('/api/schedule/:id', (req, res) => {
+/** מחק חריג – אדמין בלבד */
+app.delete('/api/schedule/:id', requireAuth, (req, res) => {
   const ok = schedule.remove(req.params.id);
   if (!ok) return res.status(404).json({ error: 'לא נמצא' });
   res.json({ ok: true });
