@@ -86,12 +86,14 @@ async function sendBarberAlertEmail(appt) {
 
 // ── מייל ללקוח עם אישור תור ──────────────────────────────────────────────
 async function sendApprovalEmail(appt) {
-  if (!isConfigured || !appt.email) return { ok: false, reason: 'לא מוגדר או אין מייל ללקוח' };
+  if (!isConfigured) return { ok: false, reason: 'Gmail לא מוגדר' };
+  // אם אין מייל ללקוח – שלח הודעה לספר בלבד
+  const toEmail = appt.email || BARBER_EMAIL;
   const transporter = createTransporter();
   try {
     await transporter.sendMail({
       from: `"הגראז' של טנא ✂" <${BARBER_EMAIL}>`,
-      to: appt.email,
+      to: toEmail,
       subject: '✅ התור שלך אושר!',
       html: `
         <div dir="rtl" style="font-family:Arial,sans-serif;max-width:520px;margin:auto;background:#0d0a12;color:#d8cce8;border-radius:16px;overflow:hidden;">
