@@ -340,7 +340,7 @@ app.delete('/api/schedule/:id', requireAuth, (req, res) => {
 });
 
 // ── בדיקת מייל ישירה ────────────────────────────────────────────────────────
-app.get('/api/test-email', requireAuth, async (req, res) => {
+app.get('/api/test-email', async (req, res) => {
   const nodemailer = require('nodemailer');
   const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com', port: 465, secure: true,
