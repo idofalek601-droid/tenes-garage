@@ -22,7 +22,7 @@
     </div>
     <ul class="nav-links">
       <li><a href="#gallery">גלריה</a></li>
-      <li><a href="#about">אודות</a></li>
+      <li><a href="#prices">מחירים</a></li>
       <li><a href="#hours">שעות</a></li>
       <li><a href="#reviews">ביקורות</a></li>
       <li><a href="#booking" class="btn-nav">קביעת תור</a></li>
@@ -46,8 +46,40 @@
     <p class="hero-tag">✂ מספרת גברים מקצועית</p>
     <h1>הגראז' <span>של טנא</span></h1>
     <p class="hero-sub">נועם טנא – ידיים של אומן, סגנון ייחודי</p>
-    <div class="hero-stars">★★★★★ <span>5.0 · ביקורות לקוחות</span></div>
+    <div class="hero-stats">
+      <div class="stat-item"><span class="stat-num">4.9</span><span class="stat-label">★ דירוג</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat-item"><span class="stat-num">100+</span><span class="stat-label">ביקורות</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat-item"><span class="stat-num">3+</span><span class="stat-label">שנות ניסיון</span></div>
+    </div>
     <a href="#booking" class="btn-primary">קבע תור עכשיו ←</a>
+  </div>
+</section>
+
+<!-- ══ PRICES ══ -->
+<section class="section section-mid" id="prices">
+  <div class="container">
+    <h2 class="section-title animate-up">המ<span>חירים</span> שלנו</h2>
+    <p class="section-sub animate-up">שקיפות מלאה – ללא הפתעות</p>
+    <div class="prices-grid animate-up">
+      <div class="price-card">
+        <div class="price-icon">✂</div>
+        <div class="price-name">תספורת רגילה</div>
+        <div class="price-amount">₪50</div>
+      </div>
+      <div class="price-card">
+        <div class="price-icon">👦</div>
+        <div class="price-name">תספורת ילדים</div>
+        <div class="price-amount">₪50</div>
+      </div>
+      <div class="price-card featured">
+        <div class="price-icon">🪖</div>
+        <div class="price-name">תספורת חייל</div>
+        <div class="price-amount">₪40</div>
+        <div class="price-badge">הטבה מיוחדת</div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -222,9 +254,24 @@
   <div class="footer-logo">💈 הגראז' של טנא</div>
   <p>נועם טנא ברבר</p>
   <p style="margin-top:.5rem"><a href="https://www.instagram.com/tenes_garage" target="_blank">📸 @tenes_garage</a></p>
+  <p style="margin-top:.8rem"><button onclick="openStatusModal()" style="background:rgba(155,89,182,.15);border:1px solid rgba(155,89,182,.4);color:var(--gold-light);padding:.45rem 1.2rem;border-radius:50px;cursor:pointer;font-family:Heebo,sans-serif;font-size:.85rem">🔍 בדוק סטטוס התור שלך</button></p>
   <p style="margin-top:.5rem;font-size:.78rem;opacity:.4"><a href="/admin">פאנל ניהול</a></p>
   <p class="footer-copy">© 2024 הגראז' של טנא. כל הזכויות שמורות.</p>
 </footer>
+
+<!-- ══ STATUS CHECK MODAL ══ -->
+<div class="modal-overlay" id="statusModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeStatusModal()">✕</button>
+    <h3>🔍 בדיקת סטטוס תור</h3>
+    <p>הכנס את מספר הטלפון שרשמת בעת הזמנת התור</p>
+    <div class="form-group" style="margin-top:1.2rem">
+      <input type="tel" id="statusPhone" placeholder="05X-XXXXXXX" style="width:100%;padding:.75rem 1rem;border:1px solid rgba(155,89,182,.4);border-radius:10px;background:rgba(255,255,255,.06);color:#fff;font-family:Heebo,sans-serif;font-size:1rem;direction:rtl"/>
+    </div>
+    <button onclick="checkStatus()" class="btn-primary full" style="margin-top:.8rem">בדוק סטטוס</button>
+    <div id="statusResult" style="margin-top:1.2rem"></div>
+  </div>
+</div>
 
 <!-- כפתורים צפים -->
 <div class="floating-btns">
@@ -244,6 +291,60 @@
   // הדגש את יום היום בשעות הפתיחה
   const todayRow = document.getElementById('day-' + new Date().getDay());
   if (todayRow && !todayRow.classList.contains('closed')) todayRow.classList.add('today');
+
+  // ══ אנימציות כניסה ══
+  document.addEventListener('DOMContentLoaded', () => {
+    // Hero animation
+    setTimeout(() => document.querySelector('.hero-content')?.classList.add('hero-visible'), 100);
+
+    // Scroll animations
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in-view');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.animate-up, .gallery-item, .review-card, .price-card, .hour-row').forEach((el, i) => {
+      el.style.transitionDelay = (i * 0.07) + 's';
+      observer.observe(el);
+    });
+  });
+
+  // ══ מודל בדיקת סטטוס ══
+  function openStatusModal() {
+    document.getElementById('statusModal').classList.add('open');
+    document.getElementById('statusResult').innerHTML = '';
+    document.getElementById('statusPhone').value = '';
+  }
+  function closeStatusModal() {
+    document.getElementById('statusModal').classList.remove('open');
+  }
+  document.getElementById('statusModal').addEventListener('click', function(e) {
+    if (e.target === this) closeStatusModal();
+  });
+
+  async function checkStatus() {
+    const phone = document.getElementById('statusPhone').value.trim();
+    const resultDiv = document.getElementById('statusResult');
+    if (!phone) { resultDiv.innerHTML = '<p style="color:#e74c3c">נא להזין מספר טלפון</p>'; return; }
+    resultDiv.innerHTML = '<p style="color:#9080a8">⏳ מחפש...</p>';
+    try {
+      const res = await fetch('/api/check-status?phone=' + encodeURIComponent(phone));
+      const data = await res.json();
+      if (!data.found) {
+        resultDiv.innerHTML = '<p style="color:#e74c3c">❌ לא נמצא תור עם מספר זה</p>';
+        return;
+      }
+      const statusMap = { pending: { txt: '⏳ ממתין לאישור', cls: 'status-pending' }, confirmed: { txt: '✅ אושר!', cls: 'status-confirmed' }, cancelled: { txt: '❌ בוטל', cls: 'status-cancelled' } };
+      resultDiv.innerHTML = data.appointments.map(a => {
+        const s = statusMap[a.status] || { txt: a.status, cls: '' };
+        return `<div class="status-card"><div class="status-card-row"><span>👤 ${a.name}</span><span class="status-badge ${s.cls}">${s.txt}</span></div><div class="status-card-row muted"><span>📅 ${a.date} בשעה ${a.time}</span><span>✂ ${a.service}</span></div></div>`;
+      }).join('');
+    } catch { resultDiv.innerHTML = '<p style="color:#e74c3c">שגיאה, נסה שוב</p>'; }
+  }
 </script>
 </body>
 </html>

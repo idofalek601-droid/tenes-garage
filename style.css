@@ -278,6 +278,88 @@ footer a:hover { text-decoration: underline; }
 .status-confirmed { background: rgba(40,167,69,.2);  color: #5cb85c; }
 .status-cancelled { background: rgba(220,53,69,.2);  color: #dc3545; }
 
+/* ===== HERO STATS ===== */
+.hero-stats {
+  display: flex; align-items: center; justify-content: center;
+  gap: 1.5rem; margin-bottom: 2rem; flex-wrap: wrap;
+}
+.stat-item { text-align: center; }
+.stat-num { display: block; font-size: 1.6rem; font-weight: 900; color: var(--white); line-height: 1; }
+.stat-label { display: block; font-size: .72rem; color: var(--text-mid); margin-top: .2rem; letter-spacing: .04em; }
+.stat-divider { width: 1px; height: 36px; background: rgba(155,89,182,.3); }
+
+/* ===== HERO ANIMATION ===== */
+.hero-content {
+  opacity: 0; transform: scale(.92) translateY(30px);
+  transition: opacity .9s ease, transform .9s cubic-bezier(.22,1,.36,1);
+}
+.hero-content.hero-visible { opacity: 1; transform: scale(1) translateY(0); }
+
+/* ===== SCROLL ANIMATIONS ===== */
+.animate-up, .gallery-item, .review-card, .price-card, .hour-row {
+  opacity: 0; transform: translateY(32px);
+  transition: opacity .65s ease, transform .65s cubic-bezier(.22,1,.36,1);
+}
+.animate-up.in-view, .gallery-item.in-view, .review-card.in-view, .price-card.in-view, .hour-row.in-view {
+  opacity: 1; transform: translateY(0);
+}
+
+/* ===== PRICES ===== */
+.prices-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3rem;
+}
+.price-card {
+  background: var(--dark-light); border-radius: var(--radius); padding: 2.2rem 1.5rem;
+  text-align: center; border: 1px solid rgba(155,89,182,.15);
+  position: relative; transition: transform var(--transition), border-color var(--transition);
+}
+.price-card:hover { transform: translateY(-6px); border-color: var(--gold); }
+.price-card.featured { border-color: var(--gold); background: linear-gradient(135deg, var(--dark-light), rgba(155,89,182,.08)); }
+.price-icon { font-size: 2.2rem; margin-bottom: .8rem; }
+.price-name { font-weight: 700; color: var(--white); font-size: 1.1rem; margin-bottom: 1rem; }
+.price-amount {
+  font-size: 2.2rem; font-weight: 900; color: var(--gold);
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.price-badge {
+  display: inline-block; background: var(--gold); color: var(--black);
+  font-size: .72rem; font-weight: 800; padding: .25rem .8rem;
+  border-radius: 50px; margin-top: .8rem;
+}
+
+/* ===== STATUS CHECK MODAL ===== */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75);
+  z-index: 99999; align-items: center; justify-content: center;
+  backdrop-filter: blur(6px);
+}
+.modal-overlay.open { display: flex; animation: fadeIn .25s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal-box {
+  background: var(--dark-mid); border-radius: 18px; padding: 2.4rem;
+  max-width: 440px; width: 90%; position: relative;
+  border: 1px solid rgba(155,89,182,.3); box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  animation: slideUp .3s cubic-bezier(.22,1,.36,1);
+}
+@keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-close {
+  position: absolute; top: 1rem; left: 1rem;
+  background: rgba(255,255,255,.08); border: none; border-radius: 50%;
+  width: 32px; height: 32px; color: var(--white); cursor: pointer; font-size: .9rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--transition);
+}
+.modal-close:hover { background: rgba(220,53,69,.4); }
+.modal-box h3 { font-size: 1.3rem; font-weight: 900; color: var(--white); margin-bottom: .5rem; }
+.modal-box p { color: var(--text-mid); font-size: .92rem; }
+.status-card {
+  background: rgba(255,255,255,.04); border-radius: 12px;
+  border: 1px solid rgba(155,89,182,.2); padding: 1rem 1.2rem; margin-bottom: .8rem;
+}
+.status-card-row { display: flex; justify-content: space-between; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.status-card-row.muted { margin-top: .5rem; font-size: .83rem; color: var(--text-mid); }
+
 /* ===== SOCIAL LINKS IN ABOUT ===== */
 .social-links {
   display: flex; gap: 1rem; margin-top: 1.5rem; padding-top: 1.2rem;

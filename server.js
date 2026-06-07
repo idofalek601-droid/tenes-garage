@@ -118,6 +118,33 @@ app.get('/auth/google/callback', async (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════
+//  בדיקת סטטוס תור – ציבורי (ללקוחות)
+// ══════════════════════════════════════════════════════════════════════════
+app.get('/api/check-status', (req, res) => {
+  const { phone } = req.query;
+  if (!phone) return res.status(400).json({ error: 'נדרש מספר טלפון' });
+  const clean = phone.replace(/[-\s]/g, '');
+  const list  = readDB();
+  // מצא את כל התורים של הטלפון, מהאחרון לראשון
+  const appts = list
+    .filter(a => a.phone.replace(/[-\s]/g, '') === clean)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  if (!appts.length)
+    return res.json({ found: false });
+  // החזר את הפרטים בלי מידע רגיש
+  res.json({
+    found: true,
+    appointments: appts.map(a => ({
+      date:    a.date,
+      time:    a.time,
+      name:    a.name,
+      service: a.service,
+      status:  a.status,
+    })),
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════
 //  כל ה-API מכאן והלאה – מוגן בהתחברות
 // ══════════════════════════════════════════════════════════════════════════
 app.use('/api/appointments', requireAuth);
