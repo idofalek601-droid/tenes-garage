@@ -146,9 +146,14 @@ app.get('/api/check-status', (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════
-//  כל ה-API מכאן והלאה – מוגן בהתחברות
+//  כל ה-API מכאן והלאה – מוגן בהתחברות (למעט POST מלקוחות)
 // ══════════════════════════════════════════════════════════════════════════
-app.use('/api/appointments', requireAuth);
+app.use('/api/appointments', (req, res, next) => {
+  // POST = לקוח קובע תור → ציבורי
+  if (req.method === 'POST') return next();
+  // כל השאר (GET, PATCH, DELETE) = אדמין בלבד
+  return requireAuth(req, res, next);
+});
 app.use('/api/schedule',     requireAuth);
 app.use('/api/status',       requireAuth);
 app.use('/api/network',      requireAuth);
