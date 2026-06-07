@@ -350,5 +350,6 @@ app.listen(PORT, () => {
   console.log(`   http://localhost:${PORT}/admin       ← פאנל ניהול`);
   console.log(`   http://localhost:${PORT}/auth/google ← חיבור Google Calendar\n`);
   console.log(`   Twilio SMS:      ${sms.isConfigured      ? '✅ מוגדר' : '⚠️  לא מוגדר (.env)'}`);
+  console.log(`   Gmail Email:     ${email.isConfigured    ? '✅ מוגדר (' + process.env.GMAIL_USER + ')' : '⚠️  לא מוגדר (חסר GMAIL_USER/GMAIL_PASS)'}`);
   console.log(`   Google Calendar: ${calendar.isConfigured  ? (calendar.isAuthorized() ? '✅ מחובר' : '⚠️  מוגדר, לא מורשה – /auth/google') : '⚠️  לא מוגדר (.env)'}\n`);
 });
