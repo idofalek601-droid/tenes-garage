@@ -1,6 +1,4 @@
 // ── Twilio SMS Service ──────────────────────────────────────────────────────
-const twilio = require('twilio');
-
 const isConfigured =
   process.env.TWILIO_ACCOUNT_SID &&
   process.env.TWILIO_ACCOUNT_SID !== 'your_account_sid_here' &&
@@ -9,7 +7,10 @@ const isConfigured =
 
 let client;
 if (isConfigured) {
-  client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+  try {
+    const twilio = require('twilio');
+    client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+  } catch { client = null; }
 }
 
 /**

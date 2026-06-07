@@ -1,7 +1,8 @@
 // ── Google Calendar Service ─────────────────────────────────────────────────
-const { google } = require('googleapis');
-const fs          = require('fs');
-const path        = require('path');
+const fs   = require('fs');
+const path = require('path');
+let google;
+try { google = require('googleapis').google; } catch { google = null; }
 
 const TOKEN_PATH = path.join(__dirname, '..', 'google_token.json');
 
