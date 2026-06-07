@@ -5,7 +5,9 @@ const isConfigured = !!(process.env.GMAIL_USER && process.env.GMAIL_PASS);
 function createTransporter() {
   if (!isConfigured) return null;
   return nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: {
       user: process.env.GMAIL_USER,
       pass: process.env.GMAIL_PASS,
@@ -90,6 +92,7 @@ async function sendApprovalEmail(appt) {
   // אם אין מייל ללקוח – שלח הודעה לספר בלבד
   const toEmail = appt.email || BARBER_EMAIL;
   const transporter = createTransporter();
+  console.log(`[EMAIL] שולח אישור תור אל: ${toEmail}`);
   try {
     await transporter.sendMail({
       from: `"הגראז' של טנא ✂" <${BARBER_EMAIL}>`,
@@ -117,8 +120,10 @@ async function sendApprovalEmail(appt) {
           </div>
         </div>`,
     });
+    console.log(`[EMAIL] ✅ נשלח בהצלחה אל ${toEmail}`);
     return { ok: true };
   } catch (err) {
+    console.error(`[EMAIL] ❌ שגיאה בשליחה:`, err.message);
     return { ok: false, reason: err.message };
   }
 }
