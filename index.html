@@ -6,6 +6,7 @@
   <title>הגראז' של טנא – מספרת גברים</title>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;900&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 </head>
 <body>
 
@@ -13,7 +14,7 @@
 <header>
   <nav class="navbar">
     <div class="logo">
-      <img src="images/logo.png" alt="לוגו הגראז' של טנא" onerror="this.style.display='none'"/>
+      <img src="images/logo.jpg" alt="לוגו הגראז' של טנא" onerror="this.style.display='none'"/>
       <div>
         <span class="logo-title">הגראז' של טנא</span>
         <span class="logo-sub">✂ NOAM TENE BARBER</span>
@@ -41,7 +42,7 @@
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-content">
-    <img src="images/logo.png" alt="לוגו" class="hero-logo" onerror="this.style.display='none'"/>
+    <img src="images/logo.jpg" alt="לוגו" class="hero-logo" onerror="this.style.display='none'"/>
     <p class="hero-tag">✂ מספרת גברים מקצועית</p>
     <h1>הגראז' <span>של טנא</span></h1>
     <p class="hero-sub">נועם טנא – ידיים של אומן, סגנון ייחודי</p>
@@ -83,11 +84,11 @@
         <div class="info-card">
           <div class="info-item">
             <span class="info-icon">📍</span>
-            <div><strong>מיקום</strong><p>הגראז' של טנא</p></div>
+            <div><strong>כתובת</strong><p><a href="https://waze.com/ul?q=נצח+ישראל+37+הוד+השרון&navigate=yes" target="_blank">נצח ישראל 37, הוד השרון</a></p></div>
           </div>
           <div class="info-item">
-            <span class="info-icon">📱</span>
-            <div><strong>אינסטגרם</strong><p><a href="https://www.instagram.com/tenes_garage" target="_blank">@tenes_garage</a></p></div>
+            <span class="info-icon">📞</span>
+            <div><strong>טלפון</strong><p><a href="tel:0525052028">052-505-2028</a></p></div>
           </div>
           <div class="info-item">
             <span class="info-icon">⭐</span>
@@ -96,6 +97,17 @@
           <div class="info-item">
             <span class="info-icon">💈</span>
             <div><strong>התמחות</strong><p>פייד, טקסצ'ר, שיער מתולתל</p></div>
+          </div>
+          <div class="social-links">
+            <a href="https://www.instagram.com/tenes_garage" target="_blank" class="social-btn insta" title="אינסטגרם">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a href="https://waze.com/ul?q=נצח+ישראל+37+הוד+השרון&navigate=yes" target="_blank" class="social-btn waze-btn" title="נווט בוויז">
+              <i class="fab fa-waze"></i>
+            </a>
+            <a href="tel:0525052028" class="social-btn call-btn" title="התקשר">
+              <i class="fas fa-phone"></i>
+            </a>
           </div>
         </div>
       </div>
@@ -213,6 +225,19 @@
   <p style="margin-top:.5rem;font-size:.78rem;opacity:.4"><a href="/admin">פאנל ניהול</a></p>
   <p class="footer-copy">© 2024 הגראז' של טנא. כל הזכויות שמורות.</p>
 </footer>
+
+<!-- כפתורים צפים -->
+<div class="floating-btns">
+  <a href="https://www.instagram.com/tenes_garage" target="_blank" class="float-btn float-insta" title="אינסטגרם">
+    <i class="fab fa-instagram"></i>
+  </a>
+  <a href="https://waze.com/ul?q=נצח+ישראל+37+הוד+השרון&navigate=yes" target="_blank" class="float-btn float-waze" title="נווט בוויז">
+    <i class="fab fa-waze"></i>
+  </a>
+  <a href="tel:0525052028" class="float-btn float-call" title="התקשר">
+    <i class="fas fa-phone"></i>
+  </a>
+</div>
 
 <script src="app.js"></script>
 <script>
