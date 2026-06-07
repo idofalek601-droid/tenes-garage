@@ -193,11 +193,14 @@ app.get('/api/appointments', requireAuth, (req, res) => {
 /** צור תור חדש */
 app.post('/api/appointments', async (req, res) => {
   const { date, time, name, phone, service } = req.body;
+  console.log('[BOOKING] received:', { date, time, name, phone, service });
   if (!date || !time || !name || !phone)
     return res.status(400).json({ error: 'יש למלא את כל השדות הנדרשים' });
 
   const list  = readDB();
+  console.log('[BOOKING] DB has', list.length, 'appointments:', JSON.stringify(list.map(a=>({date:a.date,time:a.time,status:a.status}))));
   const clash = list.find(a => a.date === date && a.time === time && a.status !== 'cancelled');
+  console.log('[BOOKING] clash found:', clash ? 'YES' : 'NO');
   if (clash)
     return res.status(409).json({ error: 'השעה הזאת כבר תפוסה – אנא בחר שעה אחרת' });
 
@@ -220,21 +223,24 @@ app.post('/api/appointments', async (req, res) => {
   // ✅ מחזירים הצלחה מיד – לא מחכים למיילים/SMS
   res.status(201).json({ ok: true, appointment: appt });
 
-  // שולחים מיילים/SMS ברקע (לא חוסמים את המשתמש)
+  // שולחים מיילים/SMS ברקע – מעדכנים רק שדות ספציפיים, לא מחליפים את כל התור
   Promise.all([
-    sms.sendCustomerConfirmation(appt).catch(() => {}),
-    sms.sendBarberAlert(appt).catch(() => {}),
-    email.sendCustomerBookingEmail(appt).catch(() => {}),
-    email.sendBarberAlertEmail(appt).catch(() => {}),
+    sms.sendCustomerConfirmation(appt).catch(() => ({ ok: false })),
+    sms.sendBarberAlert(appt).catch(() => ({ ok: false })),
+    email.sendCustomerBookingEmail(appt).catch(() => ({ ok: false })),
+    email.sendBarberAlertEmail(appt).catch(() => ({ ok: false })),
   ]).then(([smsC, smsB]) => {
-    appt.smsCustomer = smsC?.ok ? 'sent' : 'failed';
-    appt.smsBarber   = smsB?.ok ? 'sent' : 'failed';
-    return calendar.addToCalendar(appt).catch(() => ({ ok: false }));
-  }).then(calRes => {
-    if (calRes?.ok) appt.calendarEventId = calRes.eventId;
-    const fresh = readDB();
-    const idx   = fresh.findIndex(a => a.id === appt.id);
-    if (idx !== -1) { fresh[idx] = appt; writeDB(fresh); }
+    return calendar.addToCalendar(appt).catch(() => ({ ok: false })).then(calRes => {
+      // קרא את ה-DB המעודכן ועדכן רק שדות הלוגיסטיקה – לא status!
+      const fresh = readDB();
+      const idx   = fresh.findIndex(a => a.id === appt.id);
+      if (idx !== -1) {
+        fresh[idx].smsCustomer     = smsC?.ok ? 'sent' : 'failed';
+        fresh[idx].smsBarber       = smsB?.ok ? 'sent' : 'failed';
+        if (calRes?.ok) fresh[idx].calendarEventId = calRes.eventId;
+        writeDB(fresh);
+      }
+    });
   }).catch(() => {});
 });
 
