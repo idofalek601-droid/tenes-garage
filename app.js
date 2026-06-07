@@ -156,6 +156,7 @@ document.getElementById('bookingForm')?.addEventListener('submit', async (e) => 
     time:    document.getElementById('timeSlot').value,
     name:    document.getElementById('fullName').value,
     phone:   document.getElementById('phone').value,
+    email:   document.getElementById('emailInput')?.value || '',
     service: document.getElementById('service').value,
   };
   if (!data.date) { showToast('❗ אנא בחר תאריך ביומן'); return; }

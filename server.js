@@ -7,6 +7,7 @@ const QRCode   = require('qrcode');
 const session  = require('express-session');
 const bcrypt   = require('bcryptjs');
 const sms      = require('./services/sms');
+const email    = require('./services/email');
 const calendar = require('./services/calendar');
 const schedule = require('./services/schedule');
 
@@ -200,9 +201,11 @@ app.post('/api/appointments', async (req, res) => {
   if (clash)
     return res.status(409).json({ error: 'השעה הזאת כבר תפוסה – אנא בחר שעה אחרת' });
 
+  const { email: customerEmail } = req.body;
   const appt = {
     id:        Date.now().toString(),
     date, time, name, phone,
+    email:     customerEmail || null,
     service:   service || 'תספורת',
     status:    'pending',
     createdAt: new Date().toISOString(),
@@ -214,10 +217,12 @@ app.post('/api/appointments', async (req, res) => {
   list.push(appt);
   writeDB(list);
 
-  // ── שלח SMS ────────────────────────────────────────────────────────────
-  const [smsC, smsB] = await Promise.all([
+  // ── שלח SMS + מייל ─────────────────────────────────────────────────────
+  const [smsC, smsB, emailC, emailB] = await Promise.all([
     sms.sendCustomerConfirmation(appt),
     sms.sendBarberAlert(appt),
+    email.sendCustomerBookingEmail(appt),
+    email.sendBarberAlertEmail(appt),
   ]);
   appt.smsCustomer = smsC.ok ? 'sent' : ('failed: ' + smsC.reason);
   appt.smsBarber   = smsB.ok ? 'sent' : ('failed: ' + smsB.reason);
@@ -253,10 +258,14 @@ app.patch('/api/appointments/:id', async (req, res) => {
 
   list[idx].status = status;
 
-  // אם אישרו – שלח SMS אישור ללקוח
+  // אם אישרו – שלח SMS + מייל אישור ללקוח
   if (status === 'confirmed') {
-    const smsRes = await sms.sendApprovalSms(list[idx]);
-    list[idx].smsApproval = smsRes.ok ? 'sent' : ('failed: ' + smsRes.reason);
+    const [smsRes, emailRes] = await Promise.all([
+      sms.sendApprovalSms(list[idx]),
+      email.sendApprovalEmail(list[idx]),
+    ]);
+    list[idx].smsApproval   = smsRes.ok   ? 'sent' : ('failed: ' + smsRes.reason);
+    list[idx].emailApproval = emailRes.ok ? 'sent' : ('failed: ' + emailRes.reason);
   }
 
   // אם בוטל – מחק מ-Google Calendar
