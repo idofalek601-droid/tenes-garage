@@ -346,7 +346,7 @@ app.get('/api/ping', (req, res) => res.json({ ok: true, v: 'new' }));
 app.get('/api/test-email', async (req, res) => {
   const nodemailer = require('nodemailer');
   const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com', port: 465, secure: true,
+    host: 'smtp.gmail.com', port: 587, secure: false,
     auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
   });
   try {
